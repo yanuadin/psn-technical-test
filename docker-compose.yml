@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: psn-technical-test
+    restart: unless-stopped
+    working_dir: /var/www/psn-technical-test
+    volumes:
+      - ./.env:/var/www/psn-technical-test/.env
+      - ./storage:/var/www/storage
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports: 
+      - 3307:3306
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+      - ./mysql/data:/var/lib/mysql
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www/psn-technical-test
+      - ./nginx:/etc/nginx/conf.d/
+    networks:
+      - backend
+
+networks:
+  backend:
+    name : psn-technical-test
+    driver: bridge
